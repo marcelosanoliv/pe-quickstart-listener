@@ -1,0 +1,28 @@
+#!/bin/bash
+
+# Set the SAML config
+heroku config:set ENCODED_KEY="$(cat certs/key)"
+
+# Set the Business org config params
+heroku config:set SF_ORG_ID=BIZ_ORG_ID
+heroku config:set SF_INSTANCE_URL=BIZ_URL
+heroku config:set SF_ENV_TYPE=BIZ_ENV_TYPE
+heroku config:set SF_USER_NAME=BIZ_USERNAME
+heroku config:set SF_USER_PASSWORD=BIZ_PASSWORD
+heroku config:set SF_SECURITY_TOKEN=BIZ_TOKEN
+heroku config:set SF_CLIENT_ID=BIZ_CLIENT_ID
+heroku config:set SF_CLIENT_SECRET=BIZ_CLIENT_SECRET
+
+# Set the Platform events config params
+heroku config:set PE_DATA_CHANNEL=/event/BatchEvent__e
+heroku config:set PE_ORGINFO_CHANNEL=/event/UpdatedCustomerOrgInfo__e
+heroku config:set PE_REPLAY_DEFAULT=-2
+heroku config:set PE_REPLAY_OVERRIDE=FALSE
+heroku config:set PE_SUBSCRIPTION_TYPE=Subscription
+
+# Set the heroku config params
+heroku config:set WORKER_COUNT=1
+heroku config:set WORKER_URL=http://APPNAME.herokuapp.com/
+heroku config:set REDIS_URL=<Redis url>
+
+echo "Config params are set up"

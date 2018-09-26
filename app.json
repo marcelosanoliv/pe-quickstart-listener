@@ -1,0 +1,26 @@
+{
+  "name": "Heroku + Platform Events Quick Start for Salesforce ISV's, Heroku Listener Component",
+  "description": "Sample application to consume Platform Events from Salesforce",
+  "env": {
+    "SF_CLIENT_ID": {
+        "description": "Consumer key of the Salesforce Connected App",
+        "value":""
+    },
+    "SF_CLIENT_SECRET": {
+        "description": "Consumer secret of the Salesforce Connected App",
+        "value":""
+    },
+    "SF_USER_NAME": {
+        "description": "Salesforce username for the integration user",
+        "value":""
+    },
+    "SF_USER_PASSWORD": {
+        "description": "Salesforce password for the integration user",
+        "value":""
+    },
+    "SF_SECURITY_TOKEN": {
+        "description": "Salesforce security token for the integration user",
+        "value":""
+    }
+  }
+}
