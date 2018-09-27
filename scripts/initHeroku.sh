@@ -13,12 +13,18 @@ then
 fi
 
 #Create a new heroku app
-APPNAME = pe-quickstart-worker-$RANDOM
-heroku create $APPNAME
+NUMBER=$RANDOM
+APPNAME="pe-quickstart-listener-"
+APPNAME+=${NUMBER}
+heroku create ${APPNAME}
+
+#Add redis on to the new heroku app
+heroku addons:create heroku-redis:hobby-dev -a ${APPNAME}
+NEW_REDIS_URL='heroku config | grep REDIS'
 
 # Substitute field in template file
 touch scripts/setHerokuConfig.sh
-chmod 751 setHerokuConfig.sh
+chmod 751 scripts/setHerokuConfig.sh
 
 # Substitute field in customMetadata file
 sed -e "s/BIZ_ORG_ID/${BIZ_ORG_ID}/g" \
@@ -30,6 +36,7 @@ sed -e "s/BIZ_ORG_ID/${BIZ_ORG_ID}/g" \
 	-e "s/BIZ_CLIENT_ID/${BIZ_CLIENT_ID}/g" \
 	-e "s/BIZ_CLIENT_SECRET/${BIZ_CLIENT_SECRET}/g" \
 	-e "s/APPNAME/${APPNAME}/g" \
+	-e "s/REDIS_URL/${NEW_REDIS_URL}/g" \
 	scripts/herokuConfig.template > ./scripts/setHerokuConfig.sh
 
 # Then execute it

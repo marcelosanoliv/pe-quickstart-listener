@@ -1,12 +1,14 @@
 # Heroku + Platform Events Quick Start for Salesforce ISV's
 # Heroku Listener / Dispatcher Component
 
-This example is to demonstrate and serve as a quick start for how large-scale processing can be moved from Salesforce to Heroku.  It consists of four components, each with its own git repository:
+This example is to demonstrate and serve as a quick start for how large-scale processing can be moved from Salesforce to Heroku.  It consists of four components, each with its own git repository
 
 1. [Business org](https://github.com/sfisv-heroku/pe-quickstart-bizorg): A Salesforce application that keeps track of the activity happening in the Customer org and on Heroku
 1. [Customer org](https://github.com/sfisv-heroku/pe-quickstart-custorg): A Salesforce application that generates Platform Events
 1. [Listener](https://github.com/sfisv-heroku/pe-quickstart-listener) (this project): A Heroku application that consumes events and dispatches them to the worker
 1. [Worker](https://github.com/sfisv-heroku/pe-quickstart-worker): A Heroku application that receives work from the listener and performs processing on data retrieved from the Customer org
+
+They must be configured in the listed order, due to dependencies (Customer Org and Listener dependent on Business Org and Worker dependent on Listener)
 
 This is an experimental project, which means that:
 
@@ -57,7 +59,14 @@ There are two ways to install the Heroku Platform Events Quick Start Heroku list
     ```
     ./scripts/initHeroku.sh
     ```
+    Note the REDIS_URL that is displayed to the screen when running this command.
 
+1. Set the REDIS_URL config variable on the Heroku app:
+    1. Login to the heroku web interface and click on your new app
+    1. Take the REDIS_URL from the last step
+    1. Click on the "Settings" tab
+    1. Click on the "Reveal Config Vars" button
+    1. On a new row, enter REDIS_URL in the box on the left, and the value of REDIS_URL from the last step in the box on the right, and click "Add"
 
 ### Installing Heroku Platform Events Quick Start Customer Org using "Deploy to Heroku" button (Not complete)
 

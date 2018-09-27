@@ -23,6 +23,6 @@ heroku config:set PE_SUBSCRIPTION_TYPE=Subscription
 # Set the heroku config params
 heroku config:set WORKER_COUNT=1
 heroku config:set WORKER_URL=http://APPNAME.herokuapp.com/
-heroku config:set REDIS_URL=<Redis url>
+heroku config:set REDIS_URL=NEW_REDIS_URL
 
 echo "Config params are set up"
