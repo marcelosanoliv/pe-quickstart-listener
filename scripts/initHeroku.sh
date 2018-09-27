@@ -18,9 +18,13 @@ APPNAME="pe-quickstart-listener-"
 APPNAME+=${NUMBER}
 heroku create ${APPNAME}
 
+#Attach heroku to git and push the code
+#git push heroku master
+
 #Add redis on to the new heroku app
 heroku addons:create heroku-redis:hobby-dev -a ${APPNAME}
 NEW_REDIS_URL='heroku config | grep REDIS'
+echo ${NEW_REDIS_URL}
 
 # Substitute field in template file
 touch scripts/setHerokuConfig.sh
@@ -36,7 +40,7 @@ sed -e "s/BIZ_ORG_ID/${BIZ_ORG_ID}/g" \
 	-e "s/BIZ_CLIENT_ID/${BIZ_CLIENT_ID}/g" \
 	-e "s/BIZ_CLIENT_SECRET/${BIZ_CLIENT_SECRET}/g" \
 	-e "s/APPNAME/${APPNAME}/g" \
-	-e "s/REDIS_URL/${NEW_REDIS_URL}/g" \
+#	-e "s/REDIS_URL/${NEW_REDIS_URL}/g" \
 	scripts/herokuConfig.template > ./scripts/setHerokuConfig.sh
 
 # Then execute it

@@ -21,8 +21,8 @@ For more information, please go to the Salesforce Partner Community and view the
 ## Table of Contents
 
 *   Installation
-    *   [Installing Heroku Platform Events Quick Start Customer Org using Salesforce DX](#installing-heroku-pe-quickstart-custorg-using-salesforce-dx)
-    *   [Installing Heroku Platform Events Quick Start Customer Org using an unlocked package](#installing-pe-quickstart-custorg-using-an-unlocked-package)
+    *   [Installing Heroku Platform Events Quick Start Heroku Listener using Heroku CLI](#installing-heroku-pe-quickstart-listener-using-heroku-cli)
+    *   [Installing Heroku Platform Events Quick Start Heroku Listener using Deploy button](#installing-pe-quickstart-listener-using-deploy-button)
 
 ## Installation
 
