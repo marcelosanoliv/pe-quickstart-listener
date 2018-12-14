@@ -12,25 +12,27 @@ then
 	exit 1
 fi
 
-#Create a new heroku app
+#Create a new heroku app, with a random number in its name to be unique
 NUMBER=$RANDOM
-APPNAME="pe-quickstart-listener-"
+APPNAME="pe-quickstart-"
 APPNAME+=${NUMBER}
-heroku create ${APPNAME}
+LISTENER_APPNAME+="-listener"
+WORKER_APPNAME=+="-worker"
+heroku create ${LISTENER_APPNAME}
 
 #Attach heroku to git and push the code
 #git push heroku master
 
-#Add redis on to the new heroku app
-heroku addons:create heroku-redis:hobby-dev -a ${APPNAME}
+#Add redis (starting with hobby) on to the new heroku app
+heroku addons:create heroku-redis:hobby-dev -a ${LISTENER_APPNAME}
 NEW_REDIS_URL='heroku config | grep REDIS'
 echo ${NEW_REDIS_URL}
 
-# Substitute field in template file
+# Create shell for new heroku template file
 touch scripts/setHerokuConfig.sh
 chmod 751 scripts/setHerokuConfig.sh
 
-# Substitute field in customMetadata file
+# Substitute field in heroku config file, using template file
 sed -e "s/BIZ_ORG_ID/${BIZ_ORG_ID}/g" \
 	-e "s/BIZ_URL/${BIZ_URL}/g" \
 	-e "s/BIZ_ENV_TYPE/${BIZ_ENV_TYPE}/g" \
@@ -39,7 +41,7 @@ sed -e "s/BIZ_ORG_ID/${BIZ_ORG_ID}/g" \
 	-e "s/BIZ_TOKEN/${BIZ_TOKEN}/g" \
 	-e "s/BIZ_CLIENT_ID/${BIZ_CLIENT_ID}/g" \
 	-e "s/BIZ_CLIENT_SECRET/${BIZ_CLIENT_SECRET}/g" \
-	-e "s/APPNAME/${APPNAME}/g" \
+	-e "s/APPNAME/${WORKER_APPNAME}/g" \
 #	-e "s/REDIS_URL/${NEW_REDIS_URL}/g" \
 	scripts/herokuConfig.template > ./scripts/setHerokuConfig.sh
 

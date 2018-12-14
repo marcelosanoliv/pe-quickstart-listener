@@ -15,14 +15,7 @@ exports.FayeReplayExtension = {
   },
 
   incoming: function(message, callback) {
-/*
-    if (message.channel === '/meta/handshake') {
-      if (message.ext && message.ext[REPLAY_FROM_KEY] == true) {
-        _extensionEnabled = true;
-      }
-    }
-*/
-    // Call the server back now we're done
+    // Default, do nothing for incoming
     callback(message);
   },
 

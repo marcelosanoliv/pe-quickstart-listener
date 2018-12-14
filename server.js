@@ -4,39 +4,39 @@
 /**
  * Module dependencies
  */
-let nforce = require('nforce');
-let redis = require('redis');
-let express = require('express');
-let app = express();
-let server = require('http').Server(app);
-let faye = require('faye');
-var extensions = require('./fayeReplayExtension');
-var request = require('request');
+const nforce = require('nforce');
+const redis = require('redis');
+const express = require('express');
+const app = express();
+const server = require('http').Server(app);
+const faye = require('faye');
+const extensions = require('./fayeReplayExtension');
+const request = require('request');
 const crypto = require('crypto');
 
 /**
  * Setup environment variables, with defaults in case not present 
  */
 let PORT = process.env.PORT || 3000;
-let REDIS_URL = process.env.REDIS_URL || 'redis://h:pb1c2b65c1d3fb3854c15324b89283eafdc3d6906a20f52d3d9f7719d6066087f@ec2-35-172-83-87.compute-1.amazonaws.com:22489';
-let SF_ORG_ID = process.env.SF_ORG_ID || "00D54000000D8W1";
+let REDIS_URL = process.env.REDIS_URL;
+let SF_ORG_ID = process.env.SF_ORG_ID;
 let SF_INSTANCE_URL = process.env.SF_INSTANCE_URL || "https://na53.lightning.force.com";
 let SF_ENV_TYPE = process.env.SF_ENV_TYPE || "production";
-let SF_CLIENT_ID = process.env.SF_CLIENT_ID || "3MVG9PE4xB9wtoY_VcPgn5TU5U2q8XpbKxWolNDUWrE5T1ZT1NvcTjxYCBRcmdZqMYRJ73XZV5RSUFXnizFj4";
-let SF_CLIENT_SECRET = process.env.SF_CLIENT_SECRET || "304159959981996170";
-let SF_USER_NAME = process.env.SF_USER_NAME || "faysisv@gmail.com";
-let SF_USER_PASSWORD = process.env.SF_USER_PASSWORD || "Test1234";
-let SF_SECURITY_TOKEN = process.env.SF_SECURITY_TOKEN || "naiNIx45LuJ8A7mo5hHXAe1H";
+let SF_CLIENT_ID = process.env.SF_CLIENT_ID;
+let SF_CLIENT_SECRET = process.env.SF_CLIENT_SECRET;
+let SF_USER_NAME = process.env.SF_USER_NAME;
+let SF_USER_PASSWORD = process.env.SF_USER_PASSWORD;
+let SF_SECURITY_TOKEN = process.env.SF_SECURITY_TOKEN;
 let PE_NAMESPACE = process.env.PE_NAMESPACE || "";
 let PE_DATA_CHANNEL = process.env.PE_DATA_CHANNEL || "BatchEvent__e";
 let PE_ORGINFO_CHANNEL = process.env.PE_ORGINFO_CHANNEL || "/event/UpdatedCustomerOrgInfo__e";
 let PE_REPLAY_DEFAULT = process.env.PE_REPLAY_DEFAULT || "-2";
 let PE_REPLAY_OVERRIDE = process.env.PE_REPLAY_OVERRIDE || "FALSE";
 let PE_SUBSCRIPTION_TYPE = process.env.PE_SUBSCRIPTION_TYPE || "Subscription";
-let BASE_URL = process.env.WORKER_URL || 'http://pe-example-worker-0716.herokuapp.com/';
+let BASE_URL = process.env.WORKER_URL || 'http://pe-quickstart-<num>-worker.herokuapp.com/';
 let WORKER_URL = BASE_URL + 'processEvent';
 let WORKER_COUNT = process.env.WORKER_COUNT || "1";
-let ENCODED_KEY = process.env.ENCODED_KEY || "-----BEGIN RSA PRIVATE KEY-----\nMIIEowIBAAKCAQEAk7aN5jMXihjIJbdSz7btMFlFg8AKBHBDnGMxvxWT+LwoXKuM\nProcVLQ3NXzP4ywbxcilGz/PfZBa1m5/rajC4x6XyyPwKtrGF6W2WCE+7Fj36Vdw\ndHd+CAJwGeL2mQtOo+FKXUceEU/b0jSp8tmoLx/MEOONPzpbvta86JnImrdShUpG\nldsad6K7Eh9EED7vqq5eGsZNuoA4EJTEFsbfuffWSwzKXn4lEhFpwB81i9aVtXmM\nkECUVgDYxQC2n28frK2VEnmP9aQsjQ+6nu/+Erq3cSd+hZcAxFeWTdU7JLac+37z\nwclNf0OwI49B+oKSGs1ck4KmqfzUP36IP8V6tQIDAQABAoIBACeKzyG4u6x0ReAS\n21BPn985hqpmVkgp5W+P/lkw5ZPIiuWD5t9D4yGpvL3M07n0rNqdg9Vvl5P9eNO+\ncN+ENeem4Ou4iypttmnOKqoc/EM47eTBS5FiC5MJVAkaAPmnVT35qXae+yWXQzla\nb8RbD/LNiEtdHwq2DKlhwuBhipof4QqlmEIiN1fi2S4Bkp4rvzdKDZu0jAdzelfN\nhsUh8i/cyBpkshzj1/HQMS6Wmv4IoJSwYxXWuF28iRDvzk+Tbq7mq7Y1TA/Vi6S1\ndq6Qqd5C6dcmFQwXMtAsGUkCkScQ13TTWC//kLx2/3osimp5qPynsN5d3ioni/tg\nFj8lCQECgYEAxyg2ZePeqkakIU/6oA5CIksWyHxQAWJGU+Q1Fjq/OIWo4848Tt48\nXuoQeEK+iaXFnJyn0JrcliCRmmWvu44eILLYWmbXOToW1K/hrFj+VT07qWIG5P/S\n20MFcQIiM5Z4jB/Y+LGlyFC3XXc821MSRSmVfD6ScCvI7CZ2sBrdDJ0CgYEAvd99\nmOg7Vj7aoXNOihiocN/7cC4DyPWXmncz7J/Iviy8VBcRcCeRbv1G0uxHbwMUnK6T\nhIkIu3zr7yVnK982LB5K+gt1erqYQ/xy4UV8kWLK7mTP3+HO5vHArCq5TTj/Ks6m\nX9+UoDSfSxF4+SvBuyos0pXciQY7hYfenPiALvkCgYBSqOUTGyXy5IkA7pImVmSq\nmSHmqnoGaQSpkyFZjZ6KVieIDbRIQ8Mo3dtiHsm4ld5UJ00brvr5MKFeRPBQVyc4\nCSL1OpP/w5VwR2PSRcmiFV0q623TJD8fFE0w32LUqJJ2Dk3ewtT9NEs29uOCYJNH\ns3/A5rOe7P1izoAajbvLnQKBgQCO69KLrYs0oT1KuBPPaT4pMMAAMfLRauQB9mZU\nX/XoCJ5+IZsTtAUJ6YZNMGOY0VXLlrEd21SCZEboDVx6rpsFXIwNaWC10AzbaARF\nQ1u/yAB+r821dTCbsC/aqJIw6Y1Q+JpNomsqqFGbXPyVenVqYBW7Mej+D33wRlSw\nDXHXaQKBgDQnpgTUT1YttDtwflI2qmUe5AzcJfLcu8304w03+lPGVmrsoSJIS3am\nzYPOB457wuznuzNyVV9O+UsjFYGLazAqdOn9ntSC2aVbuxKvnKgkySb5zH9WarXi\n+mZv0OGvrZS5grRiqHDHxiNpEPeCgP8cHsrPw8Sogy1RrZOMHonO\n-----END RSA PRIVATE KEY-----";
+let ENCODED_KEY = process.env.ENCODED_KEY;
 
 console.log('REDIS_URL:' + REDIS_URL);
 console.log('SF_INSTANCE_URL:' + SF_INSTANCE_URL);
@@ -101,7 +101,7 @@ let bizConnInfo = {
 let bizOrg = '';
 
 //Connect to bizOrg to get connection info for customer org(s)
-var bizOrgPromise = login(bizConnInfo); //getConnection(bizConnInfo);
+let bizOrgPromise = login(bizConnInfo); //getConnection(bizConnInfo);
 bizOrgPromise.then(function(result) {
     bizOrg = result;
     console.log("Successfully authenticated to business org");
@@ -111,13 +111,12 @@ bizOrgPromise.then(function(result) {
         console.log("Successfully connected to business org to get customer org info.");
         result.forEach((customerOrg) => {
             let custConnInfoString = customerOrg.get('ConnectionInfo__c');
-            //let custConnInfoString = customerOrg.ConnectionInfo__c;
             console.log('Customer org connection info: ' + custConnInfoString);
             try {
                 let custConnInfo = JSON.parse(custConnInfoString);
                 initializeCustomerOrg(custConnInfo);
             } catch (err) {
-                console.log('Customer org info not valid JSON.  Error: ' + err);
+                console.log('Customer org connection error: ' + err);
             }
         }, function(err) {
             console.log(err);
@@ -164,7 +163,7 @@ bizOrgPromise.then(function(result) {
 };
 
 /**
- * Call into Salesforce to process the customer org connection info
+ * Call into Salesforce to fetch the customer org connection info
  */
  function getCustomerOrgInfo(bizOrg) {
 
@@ -173,7 +172,6 @@ bizOrgPromise.then(function(result) {
     return new Promise(function(resolve, reject) {
         // Do async query
         bizOrg.query({ query: q }, function(err, resp){ // nforce format
-        //bizOrg.query(q, function(err, resp){
             if(!err && resp.records) {
                 console.log('Array of records returned: ' + JSON.stringify(resp.records));
                 resolve(resp.records);
@@ -188,7 +186,7 @@ bizOrgPromise.then(function(result) {
 };
 
 /**
- * Get nforce connection to Salesforce using a useragent flow to authenticate 
+ * Login to customer org and initialize subscription
  */
  function initializeCustomerOrg(custConnInfo) {
 
@@ -211,12 +209,13 @@ bizOrgPromise.then(function(result) {
             console.log("Access token: " + oauth.access_token);
             if (oauth.access_token) {
                 let custOrg = getPreauthenticatedConnection(custConnInfo, oauth);
-                //let jsForceCustOrg = getJSForceConnection(custConnInfo, oauth);
                 console.log("Created customer org: " + JSON.stringify(custOrg));
                 var channel = custConnInfo.namespace_prefix ? custConnInfo.namespace_prefix + "__" + PE_DATA_CHANNEL : PE_DATA_CHANNEL;
                 initializeForPlatformEvents(custConnInfo.orgId, custOrg, "/event/" + channel, custConnInfo.namespace_prefix);
+                // Publish that the connection succeeded
                 publishCustomerOrgActivityEvent(bizOrg, custConnInfo.orgId, PE_SUBSCRIPTION_TYPE, 1);
             } else {
+                // Publish that the connection failed
                 publishCustomerOrgActivityEvent(bizOrg, custConnInfo.orgId, PE_SUBSCRIPTION_TYPE, 0);                
             }
         }, function(err) {
@@ -233,7 +232,6 @@ bizOrgPromise.then(function(result) {
     console.log('connInfo: ' + JSON.stringify(connInfo));
     let org = nforce.createConnection({
       clientId: connInfo.clientId,
-      //clientSecret: connInfo.clientSecret,
       environment: connInfo.environment,
       instance_url: connInfo.instance_url,
       redirectUri: connInfo.redirectUri,
@@ -257,7 +255,18 @@ function initializeForPlatformEvents(orgId, orgConn, channel, namespace) {
 
     // Subsctibe to one or more channels
     subscription = subscribeToEvents(client, channel, namespace);
-    subscriptions.set(orgId, subscription);
+    subscriptions[orgId] = subscription;
+
+    // Save connection info for org into redis
+    redisClient.hmset(orgId, "conn_string", JSON.stringify(orgConn), "access_token", orgConn.oauth.access_token,function (err, reply) {
+        if(err) {
+            console.log('Redis set err: ' + err);
+        }
+        if (reply) {
+            console.log('Redis set reply ' + reply);
+            console.log('Successfully set conn_string: ' + JSON.stringify(orgConn) + ' and access_token: ' + orgConn.oauth.access_token + ' for org: ' + orgId);
+        }
+    });
 
     var replayIdPromise = getReplayId(orgId);
     replayIdPromise.then(function(result) {
@@ -275,17 +284,6 @@ function initializeForPlatformEvents(orgId, orgConn, channel, namespace) {
     }, function(err) {
         console.log(err);
     })
-
-    // Save connection info for org into redis
-    redisClient.hmset(orgId, "conn_string", JSON.stringify(orgConn), "access_token", orgConn.oauth.access_token,function (err, reply) {
-        if(err) {
-            console.log('Redis set err: ' + err);
-        }
-        if (reply) {
-            console.log('Redis set reply ' + reply);
-            console.log('Successfully set conn_string: ' + JSON.stringify(orgConn) + ' and access_token: ' + orgConn.oauth.access_token + ' for org: ' + orgId);
-        }
-    });
 };
 
 /**
@@ -370,7 +368,7 @@ function subscribeToEvents(client, channel, namespace) {
         var orgId = namespace ? message.payload[namespace + "__OrgId__c"] : message.payload["OrgId__c"];
         if (orgId) {
             if (channel == PE_ORGINFO_CHANNEL) {
-                // Update the subscription to the org with the new connectionIndo
+                // Update the subscription to the org with the new connectionInfo
                 updateOrgSubscription(orgId, eventData, message.payload.IsActive__c);  // eventData = ConnectionIInfo
             } else {
                 // Set the lastReplayId and lastEventTime in redis
@@ -395,7 +393,7 @@ function subscribeToEvents(client, channel, namespace) {
 };
 
 /**
- * Subscribe to a single topic. 
+ * Update (activate or deactivate) a single subscription 
  */
 function updateOrgSubscription(orgId, custConnInfoString, active) {
 
@@ -403,9 +401,9 @@ function updateOrgSubscription(orgId, custConnInfoString, active) {
     console.log('Updating subscription to org: ' + orgId + ' and setting active to: ' + active);
     //console.log('Customer org connection info: ' + custConnInfoString);
 
-    var oldSubscriotion = subscriptions.get(orgId);
-    if (oldSubscriotion) {
-        oldSubscriotion.cancel();
+    var oldSubscription = subscriptions[orgId];
+    if (oldSubscription) {
+        oldSubscription.cancel();
         console.log('Removed old subscription for org: ' + orgId);
     }
 
@@ -422,14 +420,14 @@ function updateOrgSubscription(orgId, custConnInfoString, active) {
 
 /**
  * Make external call to the worker
- * (Http call, passing eventID, for now)
+ * (Http call, passing eventID)
  */
 function sendToWorker(orgId, eventId, recordIds, namespace) {
 
     // Set the headers
     var headers = {
         'User-Agent':       'Super Agent/0.0.1',
-        'Content-Type':     'application/json' // 'application/x-www-form-urlencoded' 
+        'Content-Type':     'application/json'
     }
 
     const postInfo = {
@@ -450,8 +448,7 @@ function sendToWorker(orgId, eventId, recordIds, namespace) {
       if (error) {
         console.error(`Error: Got error calling worker: ${error.message}`);
         publishErrorEvent(bizOrg, orgId, eventId, 'Got error calling worker: ' + error.message);
-      } else 
-      {
+      } else {
         if(response.statusCode != 200){
             console.error(`Error: Got status when calling worker: ${response.statusCode}`);
         } else {
